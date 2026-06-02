@@ -435,6 +435,8 @@
 
 </main>
 
+<iframe name="hidden-iframe" style="display:none;"></iframe>
+
 <script>
   const GOOGLE_FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSdVkjcsAsBPjWDiVkNPDRx9c6Rf9TA_ciHZo_ILiSMOb7htkQ/formResponse';
 
@@ -442,27 +444,22 @@
   const formWrap = document.getElementById('form-wrap');
   const successMsg = document.getElementById('success-msg');
 
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
+  // Point the form directly at the hidden iframe so the browser
+  // handles the POST natively — no fetch, no CORS issues.
+  form.setAttribute('action', GOOGLE_FORM_ACTION);
+  form.setAttribute('method', 'POST');
+  form.setAttribute('target', 'hidden-iframe');
+
+  form.addEventListener('submit', function(e) {
     const btn = form.querySelector('.btn');
     btn.textContent = 'Sending…';
     btn.disabled = true;
-
-    try {
-      const data = new FormData(form);
-      // Google Forms requires no-cors since it doesn't return CORS headers
-      await fetch(GOOGLE_FORM_ACTION, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: data
-      });
-      // no-cors fetch always "succeeds" (opaque response), so we show success
+    // Let the native form submit fire into the iframe,
+    // then show success after a short delay.
+    setTimeout(function() {
       formWrap.style.display = 'none';
       successMsg.style.display = 'flex';
-    } catch {
-      btn.textContent = 'Network error — please try again.';
-      btn.disabled = false;
-    }
+    }, 800);
   });
 </script>
 
